@@ -26,7 +26,7 @@
 ## Data:
 - Transaction Detail (Dynamic): Spot, future, sub
 - Profit and Loss (Dynamic)
-- Demographic variables: Age, gender, address, income, occupation, nationality? M? company? 
+- Demographic variables: Age, gender, address, income, occupation, nationality? Mortgage? company? 
 - Engagement data: How about those not using online service ?
 
 ## Data exploration:
