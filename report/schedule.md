@@ -39,7 +39,7 @@
 
 ## Feature Engineering:
 - Demographic variables
-- Usage of transaction/P&L/engagement data: Embedding (Stacked autoencoder?, CNN?, Data transformation?)
+- Usage of transaction/P&L/engagement data: Embedding (Stacked autoencoder? CNN? Data transformation?)
 
 ## System Architecture:
 
