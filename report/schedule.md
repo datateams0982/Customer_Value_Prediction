@@ -26,8 +26,8 @@
 ## Data:
 - Transaction Detail (Dynamic): Spot, future, sub
 - Profit and Loss (Dynamic)
-- Demographic variables: Age, gender, address, income, occupation, nationality? Mortgage? company? 
-- Engagement data: How about those not using online service ?
+- Demographic variables: Age, gender, address(通訊OR戶籍), income(x)(replace by交易限額?), occupation(x), nationality(x)? Mortgage?(NOT MUCH)
+- Engagement data: How about those not using online service ?(x)
 
 ## Data exploration:
 - Check demographic variables and LTV
