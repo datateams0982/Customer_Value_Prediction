@@ -15,6 +15,8 @@
 
 --> Specifically financial market?
 
+An Engagement-Based Customer Lifetime Value System for E-commerce
+
 # Summarize:
 
 ## Problem definition
