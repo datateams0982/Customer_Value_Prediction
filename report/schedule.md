@@ -12,6 +12,7 @@
 - 2 stage? first predict who will be active, than predict the LTV
 - efficient daily update?
 - seasonal effect adjustment? (Market trend)
+- Traditional Model (NBD): Only take RFM into concern, regardless of demographic variables, not suitable for financial market.
 
 --> Specifically financial market?
 
