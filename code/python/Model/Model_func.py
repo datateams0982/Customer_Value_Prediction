@@ -48,39 +48,6 @@ def concat_original_df(prediction_df, information, original_path, model):
     return df
 
 
-def transfer_data(df, train_date, val_date):
-
-    df = df.sort_values(by='MTH_DATE').reset_index(drop=True)
-    target = df.iloc[-1]
-    target['trading_days_total_120_days'] = target['trading_days_total_120_days']/10
-
-    trade_amount_B = df[[f'AMT_B_{i}' for i in range(11)]]
-
-    trade_amount_S = df[[f'AMT_S_{i}' for i in range(11)]]
-
-    ST_asset = df[[f'ST_ASSET_{i}' for i in range(11)] + [f'ST_ASSET_{-1 * i}' for i in range(1, 11)]]
-
-    MP_asset = df[[f'MP_ASSET_{i}' for i in range(11)] + [f'MP_ASSET_{-1 * i}' for i in range(1, 11)]]
-
-    SS_asset = df[[f'SS_ASSET_{i}' for i in range(11)] + [f'SS_ASSET_{-1 * i}' for i in range(1, 11)]]
-
-    if target['GENDER'] == 'M':
-        target['GENDER'] = int(1)
-    else:
-        target['GENDER'] = int(0)
-        
-    demographic = target[['GENDER', 'AGE', 'first_stage_0_score', 'first_stage_1_score', 'trading_days_total_120_days']].values.tolist()
-    label = target['LABEL_CHURN']
-    information = target['sample_no']
-
-    if target['MTH_DATE'] < train_date:
-        return [trade_amount_B, trade_amount_S, ST_asset, MP_asset, SS_asset, demographic, information, label, 'train']
-    elif target['MTH_DATE'] < val_date:
-        return [trade_amount_B, trade_amount_S, ST_asset, MP_asset, SS_asset, demographic, information, label, 'val']
-    else:
-        return [trade_amount_B, trade_amount_S, ST_asset, MP_asset, SS_asset, demographic, information, label, 'test']
-
-
 # Return churn/active/false positive/false negative data
 def subset_df(df, threshold=0.5):
 
