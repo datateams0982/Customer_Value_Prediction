@@ -14,6 +14,7 @@ from sklearn.metrics import classification_report
 from sklearn import metrics
 from sklearn.metrics import classification_report
 
+# Prediction
 def predict(original_df, threshold, model):
     
     prediction = model.predict(original_df, batch_size=128)
@@ -21,7 +22,7 @@ def predict(original_df, threshold, model):
     
     return pred
 
-
+# Evaluation
 def Evaluation(original_df, original_label, model, threshold=0.5):
     
     Y = [0 if element == 'ACTIVE' else 1 for element in original_label]
@@ -34,6 +35,7 @@ def Evaluation(original_df, original_label, model, threshold=0.5):
     return [accuracy, report]
 
 
+# Concat prediction with original dataframe
 def concat_original_df(prediction_df, information, original_path, model):
 
     prediction = model.predict(prediction_df, batch_size=128)
@@ -79,15 +81,7 @@ def transfer_data(df, train_date, val_date):
         return [trade_amount_B, trade_amount_S, ST_asset, MP_asset, SS_asset, demographic, information, label, 'test']
 
 
-def label_df(original_path, label_type='CHURN'):
-
-    original_df = pd.read_csv(original_path)
-    df_list = [group[1] for group in original_df.groupby(original_df['sample_no'])]
-    original_df = pd.concat([df.iloc[-1] for df in df_list if df['LABEL_CHURN'].iloc[-1] == label_type], axis=1).transpose()
-
-    return original_df
-
-
+# Return churn/active/false positive/false negative data
 def subset_df(df, threshold=0.5):
 
     df_list = [group[1] for group in df.groupby(df['sample_no'])]

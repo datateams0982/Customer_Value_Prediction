@@ -158,3 +158,5 @@ def transfer_google_feature(df, period=10, time_period=120):
     df_final = pd.DataFrame(d).transpose()
 
     return df_final
+
+

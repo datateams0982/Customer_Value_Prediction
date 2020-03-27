@@ -3,8 +3,12 @@ import numpy as np
 import random
 from datetime import date
 
-
+##Data binning function
 def label_encoding(row, reference, col):
+
+    '''
+    input: reference dictionary, the feature column for binning, data row
+    '''
 
     num = abs(row[col])
     label = 10
@@ -18,17 +22,25 @@ def label_encoding(row, reference, col):
     
     return label
 
+
+#Trading data preprocess function
 def trading_days(df, time_period, timedf, reference_dict):
+
+    '''
+    input: trading data of a single customer, the period of time to trace back, a dataframe of all trading dates, data binning reference
+    output: processed data
+    '''
 
     start_date = df['MTH_DATE'].min()
     churn_date = df[df.LABEL_CHURN == 'CHURN']['MTH_DATE']
     timedf = timedf[timedf['MTH_DATE'] >= start_date]
 
+    #data binning
     for col in ['AMT_B', 'AMT_S']:
         reference = reference_dict[col]
         df[f'{col}_label'] = df.apply(label_encoding, reference=reference, col=col, axis=1)
 
-
+    #Cut off data if customer churns
     if len(churn_date) != 0:
         timedf_list = []
         for churn in churn_date:
@@ -38,6 +50,7 @@ def trading_days(df, time_period, timedf, reference_dict):
 
         timedf = pd.concat(timedf_list)
 
+    #Filling missing dates
     full_df = pd.merge(df, timedf, on='MTH_DATE', how='right')
     full_df = full_df.sort_values(by='MTH_DATE').reset_index(drop=True)
 
@@ -51,6 +64,7 @@ def trading_days(df, time_period, timedf, reference_dict):
         for col in zero_col:
             full_df[col] = full_df[col].fillna(0)
 
+    #Features for EDA
     full_df[f'trading_days_total_{time_period}_days'] = full_df['TRADE'].rolling(window=time_period).sum()
     full_df[f'trading_days_amount_{time_period}_days'] = full_df['AMT_B'].rolling(window=time_period).sum() + full_df['AMT_S'].rolling(window=time_period).sum()
     full_df['frequency_annual'] = full_df['TRADE'].rolling(window=250).sum()
@@ -60,31 +74,22 @@ def trading_days(df, time_period, timedf, reference_dict):
     return full_df
 
 
+#Down sampling function for active customers
+def sampling(df, time_period, threshold, multiple=1):
 
-def sampling(df, time_period, threshold, similarity=True, multiple=1):
-
+    '''
+    input: processed trading data, the period of time to trace back, the threshold of frequency, the multiple of active data comparing to churn data
+    output: data with a column indicating sampled or not, customer IDs that are sampled
+    '''
+    
+    #Filter data
     sample_df = df[(df['TRADE'] == 1) & (df['frequency_annual'] >= threshold) & (df['MTH_DATE'] >= '2015-07-07') & (df[f'trading_days_total_{time_period}_days'].notnull())]
     active_df = sample_df[(sample_df['LABEL_CHURN'] == 'ACTIVE')]
     churn_df = sample_df[sample_df['LABEL_CHURN'] == 'CHURN']
 
-    if similarity:
-        days = churn_df[f'trading_days_total_{time_period}_days'].quantile([i/10 for i in range(1, 10)]).tolist()
-        max_amount = churn_df[f'trading_days_amount_{time_period}_days'].quantile([i/10 for i in range(1, 10)]).tolist()
-        sample_index_list = []
-        for d, amt in zip(days, max_amount):
-            sampling = active_df[(active_df[f'trading_days_total_{time_period}_days'] <= d) & (active_df[f'trading_days_amount_{time_period}_days'] <= amt)]
-            sample_index = random.sample(range(0, len(sampling)), int(len(churn_df)/10))
-            active_sample = sampling.iloc[sample_index].index.tolist()
-            sample_index_list = sample_index_list + active_sample
-            active_df = active_df[(active_df[f'trading_days_total_{time_period}_days'] > d) & (active_df[f'trading_days_amount_{time_period}_days'] > amt)]
-
-        sample_index = random.sample(range(0, len(active_df)), int(len(churn_df)/10))
-        active_sample = active_df.iloc[sample_index].index.tolist()
-        sample_index_list = sample_index_list + active_sample
-
-    else:
-        sample_index = random.sample(range(0, len(active_df)), multiple*len(churn_df))
-        sample_index_list = active_df.iloc[sample_index].index.tolist()
+    #Random sampling
+    sample_index = random.sample(range(0, len(active_df)), multiple*len(churn_df))
+    sample_index_list = active_df.iloc[sample_index].index.tolist()
 
     sample_list = sample_index_list + churn_df.index.tolist()
     df['sampled'] = 'N'
@@ -94,7 +99,13 @@ def sampling(df, time_period, threshold, similarity=True, multiple=1):
     return df, sample_id
 
 
+#Trace back based on sample data
 def pick_history_data(df, time_period):
+
+    '''
+    input: sampled trading data of a single customer, the period of time to trace back
+    output: traced back data
+    '''
 
     history_list = []
     df = df.sort_values(by='MTH_DATE').reset_index(drop=True)
@@ -111,6 +122,7 @@ def pick_history_data(df, time_period):
     return history_df
 
 
+#Binning asset data
 def label_asset(df, reference_dict):
 
     for col in ['ST_ASSET', 'MP_ASSET', 'SS_ASSET']:
@@ -121,6 +133,7 @@ def label_asset(df, reference_dict):
 
     return df
 
+#Transfer data to list and separate training/validation/testing data for CNN
 def transfer_data(df, train_date, val_date):
 
     df = df.sort_values(by='MTH_DATE').reset_index(drop=True)
@@ -152,7 +165,8 @@ def transfer_data(df, train_date, val_date):
     else:
         return [trade_amount_B, trade_amount_S, ST_asset, MP_asset, SS_asset, demographic, information, label, 'test']
 
-    
+
+#Transfer data for google autoML
 def transfer_google(df, data_type='numerical'):
 
     time_len = len(df)
@@ -199,10 +213,3 @@ def transfer_google_feature(df, period=10, time_period=120):
     return df_final
 
 
-def frequency(df):
-
-    full_df = df.sort_values(by='MTH_DATE').reset_index(drop=True)
-    full_df['frequency_annual'] = full_df['TRADE'].rolling(window=250).sum()
-    full_df['amount_annual'] =  full_df['AMT_B'].rolling(window=250).sum() + full_df['AMT_S'].rolling(window=360).sum()
-
-    return full_df
